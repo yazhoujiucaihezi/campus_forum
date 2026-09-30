@@ -1,0 +1,11 @@
+.idea/
+*.iml
+target/
+node_modules/
+dist/
+.vs/
+frontend/node_modules/
+frontend/dist/
+frontend/.vs/
+campus-forum-springboot-vue-github-clean/
+frontend.zip
