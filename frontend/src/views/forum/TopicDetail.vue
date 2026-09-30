@@ -215,7 +215,8 @@
                         <div style="text-align: right">
                             <el-link :icon="ChatSquare" @click="comment.show = true;comment.quote = item"
                                      type="info">&nbsp;回复评论</el-link>
-                            <el-link :icon="Delete" type="danger" v-if="item.user.id === store.user.id"
+                            <el-link :icon="Delete" type="danger"
+                                     v-if="item.user.id === store.user.id || topic.data.user.id === store.user.id || store.user.role === 'admin'"
                                      style="margin-left: 20px" @click="deleteComment(item.id)">&nbsp;删除评论</el-link>
                         </div>
                     </div>
@@ -233,7 +234,8 @@
                       :default-title="topic.data.title" submit-button="更新帖子内容" :submit="updateTopic" />
         <topic-comment-editor :show="comment.show" @close="comment.show=false" :tid="tid"
                               :quote="comment.quote" @comment="onCommentAdd" />
-        <div class="add-comment" @click="comment.show=true;comment.quote = null">
+        <div class="add-comment" :class="{ disabled: comment.show }"
+             @click="comment.show=true;comment.quote = null">
             <el-icon><Plus /></el-icon>
         </div>
     </div>
@@ -251,23 +253,30 @@
 
     .add-comment {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 40px;
+        bottom: 40px;
+        right: 40px;
+        width: 80px;
         height: 40px;
-        border-radius: 50%;
-        font-size: 18px;
-        color: var(--el-color-primary);
+        border-radius: 20px;
+        font-size: 14px;
+        color: #fff;
         text-align: center;
-        line-height: 45px;
-        background: var(--el-bg-color-overlay);
-        box-shadow: var(--el-box-shadow-lighter);
-
-        &:hover {
-            background: var(--el-border-color-extra-light);
-            cursor: pointer;
-        }
+        line-height: 40px;
+        background: #409eff;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        cursor: pointer;
+        z-index: 9999;
     }
+    .add-comment.disabled {
+        background: #c0c4cc;
+        cursor: not-allowed;
+        pointer-events: none;
+        }
+
+.add-comment:hover {
+  background: #66b1ff;
+}
+    
 
     .topic-page {
         display: flex;

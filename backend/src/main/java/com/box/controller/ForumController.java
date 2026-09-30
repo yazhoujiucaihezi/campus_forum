@@ -1,13 +1,14 @@
 package com.box.controller;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.box.common.Result;
+import com.box.dto.CommentDTO;
 import com.box.entity.Topic;
 import com.box.entity.TopicComment;
 import com.box.entity.TopicType;
 import com.box.entity.User;
+import com.box.exception.BusinessException;
 import com.box.mapper.TopicCommentMapper;
 import com.box.mapper.TopicMapper;
 import com.box.mapper.TopicTypeMapper;
@@ -20,8 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
-import utils.JwtUtils;
+import com.box.utils.JwtUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,12 +37,10 @@ import java.util.List;
 public class ForumController {
 
     private final TopicMapper topicMapper;
-
     private final TopicTypeMapper topicTypeMapper;
-
     private final UserMapper userMapper;
-
     private final TopicCommentMapper topicCommentMapper;
+
 
     /**
      * 获取帖子类型
@@ -64,7 +64,7 @@ public class ForumController {
         LambdaQueryWrapper<Topic> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Topic::getInvisible, 0);
 
-        if (type != null && type != 0){
+        if (type != null && type != 0) {
             queryWrapper.eq(Topic::getType, type);
         }
 
@@ -97,9 +97,7 @@ public class ForumController {
     @GetMapping("/topic")
     public Result<TopicDetailVO> getTopic(@RequestHeader("Authorization") String authHeader, @RequestParam Integer tid) {
 
-        String token = authHeader.substring(7);
-        DecodedJWT jwt = JwtUtils.verifyToken(token);
-        Integer uid = jwt.getClaim("uid").asInt();
+        Integer uid = JwtUtils.getUid(authHeader);
 
         TopicDetailVO topicDetailVO = new TopicDetailVO();
         TopicInteractVO interactVO = new TopicInteractVO();
@@ -133,9 +131,8 @@ public class ForumController {
                                  @RequestParam Integer tid,
                                  @RequestParam String type,
                                  @RequestParam Boolean state) {
-        String token = authHeader.substring(7);
-        DecodedJWT jwt = JwtUtils.verifyToken(token);
-        Integer uid = jwt.getClaim("uid").asInt();
+
+        Integer uid = JwtUtils.getUid(authHeader);
 
         if ("like".equals(type)) {
             if (state) {
@@ -179,8 +176,49 @@ public class ForumController {
             }
             commentVOList.add(commentVO);
         }
-
-
         return Result.success(commentVOList);
     }
+
+    /**
+     * 添加帖子评论
+     */
+    @PostMapping("/add-comment")
+    public Result<Void> addComment(@RequestHeader("Authorization") String authHeader,
+                                   @RequestBody CommentDTO commentDTO) {
+
+        Integer uid = JwtUtils.getUid(authHeader);
+
+        TopicComment topicComment = new TopicComment();
+        BeanUtils.copyProperties(commentDTO, topicComment);
+        topicComment.setTime(LocalDateTime.now());
+        topicComment.setUid(uid);
+
+        topicCommentMapper.insert(topicComment);
+
+        return Result.success(null);
     }
+
+    /**
+     * 删除帖子评论
+     */
+    @GetMapping("/delete-comment")
+    public Result<Void> deleteComment(@RequestHeader("Authorization") String authHeader,
+                                      @RequestParam Integer id) {
+        Integer uid = JwtUtils.getUid(authHeader);
+        String role = JwtUtils.getRole(authHeader);
+        TopicComment comment = topicCommentMapper.selectById(id);
+        if (comment == null) {
+            throw new BusinessException("评论不存在");
+        }
+        Integer tid = comment.getTid();
+        Topic topic = topicMapper.selectById(tid);
+        boolean isAuthor = comment.getUid().equals(uid);   // 评论作者
+        boolean isOwner = topic.getUid().equals(uid);  // 帖子楼主
+        boolean isAdmin = "admin".equals(role);
+        if (!isAuthor && !isOwner && !isAdmin) {
+            throw new BusinessException("无权删除");
+        }
+        topicCommentMapper.deleteById(id);
+        return Result.success(null);
+    }
+}

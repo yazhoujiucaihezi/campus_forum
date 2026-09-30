@@ -1,4 +1,4 @@
-package utils;
+package com.box.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -30,5 +30,17 @@ public class JwtUtils {
      */
     public static DecodedJWT verifyToken(String token) {
         return JWT.require(Algorithm.HMAC256(SECRET_KEY)).build().verify(token);
+    }
+
+    public static Integer getUid(String authHeader) {
+        String token = authHeader.substring(7);
+        DecodedJWT jwt = verifyToken(token);
+        return jwt.getClaim("uid").asInt();
+    }
+
+    public static String getRole(String authHeader) {
+        String token = authHeader.substring(7);
+        DecodedJWT jwt = verifyToken(token);
+        return jwt.getClaim("role").asString();
     }
 }
