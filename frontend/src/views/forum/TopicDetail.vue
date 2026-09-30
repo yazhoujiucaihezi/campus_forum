@@ -80,7 +80,7 @@
     id: tid,
     type: editor.type.id,
     title: editor.title,
-    content: editor.text
+    content: JSON.stringify(editor.text)
     }, () => {
     ElMessage.success('帖子内容更新成功！')
     edit.value = false
@@ -234,7 +234,7 @@
                       :default-title="topic.data.title" submit-button="更新帖子内容" :submit="updateTopic" />
         <topic-comment-editor :show="comment.show" @close="comment.show=false" :tid="tid"
                               :quote="comment.quote" @comment="onCommentAdd" />
-        <div class="add-comment" :class="{ disabled: comment.show }"
+        <div class="add-comment" v-if="!comment.show && !edit"
              @click="comment.show=true;comment.quote = null">
             <el-icon><Plus /></el-icon>
         </div>
@@ -267,11 +267,7 @@
         cursor: pointer;
         z-index: 9999;
     }
-    .add-comment.disabled {
-        background: #c0c4cc;
-        cursor: not-allowed;
-        pointer-events: none;
-        }
+
 
 .add-comment:hover {
   background: #66b1ff;

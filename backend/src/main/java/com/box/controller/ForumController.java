@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.box.common.Result;
 import com.box.dto.CommentDTO;
+import com.box.dto.TopicUpdateDTO;
 import com.box.entity.Topic;
 import com.box.entity.TopicComment;
 import com.box.entity.TopicType;
@@ -219,6 +220,21 @@ public class ForumController {
             throw new BusinessException("无权删除");
         }
         topicCommentMapper.deleteById(id);
+        return Result.success(null);
+    }
+
+    @PostMapping("/update-topic")
+    public Result<Void> updateTopic(@RequestHeader("Authorization") String authHeader,
+                                    @RequestBody TopicUpdateDTO dto) {
+        String role = JwtUtils.getRole(authHeader);
+        Integer uid = JwtUtils.getUid(authHeader);
+
+        Topic topic = topicMapper.selectById(dto.getId());
+        if (!"admin".equals(role) || !uid.equals(topic.getUid())) {
+            throw new BusinessException("无权修改");
+        }
+        BeanUtils.copyProperties(dto, topic);
+        topicMapper.update(topic,null);
         return Result.success(null);
     }
 }
