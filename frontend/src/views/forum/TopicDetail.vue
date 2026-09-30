@@ -67,13 +67,13 @@
     }
 
     function interact(type, message) {
-    apiForumInteract(tid, type, topic, message)
-    if (type === 'like') {
-    topic.likeCount += topic.like ? 1 : -1
-    } else if (type === 'collect') {
-    topic.collectCount += topic.collect ? 1 : -1
-    }
-    }
+  if (type === 'like') {
+    topic.likeCount += topic.like ? -1 : 1
+  } else if (type === 'collect') {
+    topic.collectCount += topic.collect ? -1 : 1
+  }
+  apiForumInteract(tid, type, topic, message)
+}
 
     function updateTopic(editor) {
     apiForumUpdateTopic({
