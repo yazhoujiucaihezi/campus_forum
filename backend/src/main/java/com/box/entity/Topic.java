@@ -1,6 +1,7 @@
 package com.box.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -17,6 +18,12 @@ public class Topic {
     /** 主键，自增 */
     @TableId(type = IdType.AUTO)
     private Integer id;
+
+    @TableField(exist = false)
+    private Integer like;
+
+    @TableField(exist = false)
+    private Integer collect;
 
     /** 帖子标题 */
     private String title;

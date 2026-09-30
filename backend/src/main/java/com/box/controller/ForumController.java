@@ -65,6 +65,11 @@ public class ForumController {
 
         Page<Topic> topicPage = topicMapper.selectPage(new Page<>(page, 10), queryWrapper);
 
+        for (Topic t : topicPage.getRecords()) {
+            t.setLike(topicMapper.countLikeByTid(t.getId()));
+            t.setCollect(topicMapper.countCollectByTid(t.getId()));
+        }
+
         return Result.success(topicPage.getRecords());
     }
 
@@ -102,6 +107,8 @@ public class ForumController {
 
         interactVO.setLike(topicMapper.countLike(uid, topic.getUid())>0);
         interactVO.setCollect(topicMapper.countCollect(uid, topic.getUid())>0);
+        interactVO.setLikeCount(topicMapper.countLikeByTid(tid));
+        interactVO.setCollectCount(topicMapper.countCollectByTid(tid));
         topicDetailVO.setInteract(interactVO);
         topicDetailVO.setComments(topicMapper.countComments(tid));
         topicDetailVO.setUser(topicMapper.getTopicUser(tid));
