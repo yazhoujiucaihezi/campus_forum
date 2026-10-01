@@ -6,6 +6,9 @@ import com.box.mapper.UserMapper;
 import com.box.service.UserService;
 import org.springframework.stereotype.Service;
 
+/**
+ * 用户服务实现
+ */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 

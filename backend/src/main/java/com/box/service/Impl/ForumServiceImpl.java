@@ -6,6 +6,9 @@ import com.box.mapper.ForumMapper;
 import com.box.service.ForumService;
 import org.springframework.stereotype.Service;
 
+/**
+ * 论坛板块服务实现
+ */
 @Service
 public class ForumServiceImpl extends ServiceImpl<ForumMapper, Forum> implements ForumService {
 }

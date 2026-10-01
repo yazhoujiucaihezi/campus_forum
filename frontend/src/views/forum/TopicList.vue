@@ -164,7 +164,7 @@ onMounted(() => {
                   <topic-tag :type="item.type"/>
                 <span style="font-weight: bold;margin-left: 7px">{{item.title}}</span>
               </div>
-              <div class="topic-content">{{item.text}}</div>
+              <div class="topic-content">{{item.intro}}</div>
               <div style="display: grid;grid-template-columns: repeat(3,1fr);grid-gap: 10px">
                 <el-image class="topic-image" v-for="img in item.images" :src="img" fit="cover"></el-image>
               </div>
@@ -300,6 +300,7 @@ onMounted(() => {
 .topic-card {
   padding: 15px;
   transition: scale .3s;
+  word-break: break-word;
 
   &:hover {
     scale: 1.015;
@@ -315,7 +316,9 @@ onMounted(() => {
     -webkit-line-clamp: 3;
     overflow: hidden;
     text-overflow: ellipsis;
+    word-break: break-word;
   }
+
 
   .topic-image {
     width: 100%;

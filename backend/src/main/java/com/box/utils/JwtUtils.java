@@ -32,12 +32,14 @@ public class JwtUtils {
         return JWT.require(Algorithm.HMAC256(SECRET_KEY)).build().verify(token);
     }
 
+    /** 从请求头解析用户 ID */
     public static Integer getUid(String authHeader) {
         String token = authHeader.substring(7);
         DecodedJWT jwt = verifyToken(token);
         return jwt.getClaim("uid").asInt();
     }
 
+    /** 从请求头解析用户角色 */
     public static String getRole(String authHeader) {
         String token = authHeader.substring(7);
         DecodedJWT jwt = verifyToken(token);

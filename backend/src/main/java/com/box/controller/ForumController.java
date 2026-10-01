@@ -1,19 +1,16 @@
 package com.box.controller;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.box.common.Result;
 import com.box.dto.CommentDTO;
 import com.box.dto.TopicUpdateDTO;
-import com.box.entity.Topic;
-import com.box.entity.TopicComment;
-import com.box.entity.TopicType;
-import com.box.entity.User;
+import com.box.entity.*;
 import com.box.exception.BusinessException;
-import com.box.mapper.TopicCommentMapper;
-import com.box.mapper.TopicMapper;
-import com.box.mapper.TopicTypeMapper;
-import com.box.mapper.UserMapper;
+import com.box.mapper.*;
 import com.box.vo.CommentVO;
 import com.box.vo.TopicDetailVO;
 import com.box.vo.TopicInteractVO;
@@ -41,6 +38,7 @@ public class ForumController {
     private final TopicTypeMapper topicTypeMapper;
     private final UserMapper userMapper;
     private final TopicCommentMapper topicCommentMapper;
+    private final UserDetailMapper userDetailMapper;
 
 
     /**
@@ -102,19 +100,21 @@ public class ForumController {
 
         TopicDetailVO topicDetailVO = new TopicDetailVO();
         TopicInteractVO interactVO = new TopicInteractVO();
+        TopicUserVO userVO = topicMapper.getTopicUser(tid);
+        UserDetail userDetail = userDetailMapper.selectById(userVO.getId());
+        BeanUtils.copyProperties(userDetail, userVO);
         Topic topic = topicMapper.selectById(tid);
         BeanUtils.copyProperties(topic, topicDetailVO);
 
         interactVO.setLikeCount(topicMapper.countLikeByTid(topic.getId()));
         interactVO.setCollectCount(topicMapper.countCollectByTid(topic.getId()));
 
-        // 当前用户有没有点赞、收藏
         interactVO.setLike(topicMapper.countLike(topic.getId(), uid) > 0);
         interactVO.setCollect(topicMapper.countCollect(topic.getId(), uid) > 0);
 
         topicDetailVO.setInteract(interactVO);
         topicDetailVO.setComments(topicMapper.countComments(tid));
-        topicDetailVO.setUser(topicMapper.getTopicUser(tid));
+        topicDetailVO.setUser(userVO);
 
         return Result.success(topicDetailVO);
     }
@@ -162,14 +162,29 @@ public class ForumController {
 
         for (TopicComment topicComment : topicCommentPage.getRecords()) {
             CommentVO commentVO = new CommentVO();
-
             BeanUtils.copyProperties(topicComment, commentVO);
-            User user = userMapper.selectById(topicComment.getUid());
-            if (user != null) {
-                TopicUserVO topicUserVO = new TopicUserVO();
-                BeanUtils.copyProperties(user, topicUserVO);
-                commentVO.setUser(topicUserVO);
+
+            if (topicComment.getQuote() != null && topicComment.getQuote() > 0) {
+                TopicComment quoted = topicCommentMapper.selectById(topicComment.getQuote());
+                if (quoted != null) {
+                    commentVO.setQuote(parseQuillText(quoted.getContent()));
+                }
             }
+
+            Integer commentUid = topicComment.getUid();
+            TopicUserVO topicUserVO = new TopicUserVO();
+
+            User user = userMapper.selectById(commentUid);
+            if (user != null) {
+                BeanUtils.copyProperties(user, topicUserVO);
+            }
+
+            UserDetail userDetail = userDetailMapper.selectById(commentUid);
+            if (userDetail != null) {
+                BeanUtils.copyProperties(userDetail, topicUserVO);
+            }
+
+            commentVO.setUser(topicUserVO);
             commentVOList.add(commentVO);
         }
         return Result.success(commentVOList);
@@ -208,8 +223,8 @@ public class ForumController {
         }
         Integer tid = comment.getTid();
         Topic topic = topicMapper.selectById(tid);
-        boolean isAuthor = comment.getUid().equals(uid);   // 评论作者
-        boolean isOwner = topic.getUid().equals(uid);  // 帖子楼主
+        boolean isAuthor = comment.getUid().equals(uid);
+        boolean isOwner = topic.getUid().equals(uid);
         boolean isAdmin = "admin".equals(role);
         if (!isAuthor && !isOwner && !isAdmin) {
             throw new BusinessException("无权删除");
@@ -232,10 +247,16 @@ public class ForumController {
             throw new BusinessException("无权修改");
         }
         BeanUtils.copyProperties(dto, topic);
+        String text = parseQuillText(dto.getContent());
+        String substring = text.substring(0, Math.min(text.length(), 8));
+        topic.setIntro(substring);
         topicMapper.updateById(topic);
         return Result.success(null);
     }
 
+    /**
+     * 创建帖子
+     */
     @PostMapping("/create-topic")
     public Result<Void> createTopic(@RequestHeader("Authorization") String authHeader,
                                     @RequestBody TopicUpdateDTO dto) {
@@ -247,6 +268,9 @@ public class ForumController {
 
         Topic topic = new Topic();
         BeanUtils.copyProperties(dto, topic);
+        String text = parseQuillText(dto.getContent());
+        String substring = text.substring(0, Math.min(text.length(), 8));
+        topic.setIntro(substring);
         topic.setUid(uid);
         topic.setTime(LocalDateTime.now());
         topicMapper.insert(topic);
@@ -273,6 +297,7 @@ public class ForumController {
         return Result.success(null);
     }
 
+    /** 获取当前用户的帖子列表 */
     @GetMapping("/user-topic")
     public Result<List<Topic>> getUserTopic(@RequestHeader("Authorization") String authHeader){
         Integer uid = JwtUtils.getUid(authHeader);
@@ -287,6 +312,7 @@ public class ForumController {
         return Result.success(topics);
     }
 
+    /** 搜索帖子 */
     @GetMapping("/search-topic")
     public Result<List<Topic>> searchTopic(@RequestParam String keyword) {
         LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
@@ -300,5 +326,45 @@ public class ForumController {
             t.setCollect(topicMapper.countCollectByTid(t.getId()));
         }
         return Result.success(list);
+    }
+
+    /** 获取当前用户收藏的帖子 */
+    @GetMapping("/collects")
+    public Result<List<Topic>> getCollectsTopic(@RequestHeader("Authorization") String authHeader) {
+        Integer uid = JwtUtils.getUid(authHeader);
+        LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
+        List<Integer> collectTids = topicMapper.selectCollectTids(uid);
+        if (collectTids.isEmpty()) {
+            return Result.success(new ArrayList<>());
+        }
+        wrapper.in(Topic::getId, collectTids);
+        wrapper.orderByDesc(Topic::getTime);
+        List<Topic> list = topicMapper.selectList(wrapper);
+        for (Topic t : list) {
+            t.setLike(topicMapper.countLikeByTid(t.getId()));
+            t.setCollect(topicMapper.countCollectByTid(t.getId()));
+        }
+        return Result.success(list);
+    }
+
+    /** 解析 Quill 富文本为纯文本 */
+    private String parseQuillText(String content) {
+        if (content == null || content.isEmpty()) return "";
+        try {
+            JSONArray ops = JSON.parseObject(content).getJSONArray("ops");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < ops.size(); i++) {
+                JSONObject op = ops.getJSONObject(i);
+                if (op.containsKey("insert")) {
+                    Object insert = op.get("insert");
+                    if (insert instanceof String) {
+                        sb.append((String) insert);
+                    }
+                }
+            }
+            return sb.toString().trim();
+        } catch (Exception e) {
+            return content;
+        }
     }
 }

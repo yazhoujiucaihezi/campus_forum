@@ -19,9 +19,11 @@ public class Topic {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
+    /** 点赞数，非数据库字段 */
     @TableField(exist = false)
     private Integer like;
 
+    /** 收藏数，非数据库字段 */
     @TableField(exist = false)
     private Integer collect;
 

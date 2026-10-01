@@ -20,5 +20,5 @@ public class UserVO {
     /** 头像地址 */
     private String avatar;
     /** 注册时间 */
-    private LocalDateTime registerTime;  // 或 createTime，看你数据库字段名
+    private LocalDateTime registerTime;
 }
