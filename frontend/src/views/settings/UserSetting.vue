@@ -74,7 +74,7 @@ function saveDetails(){
         store.user.username=baseForm.username
         desc.value=baseForm.desc
         loading.base = false
-      },Message=>{
+      },message=>{
         ElMessage.warning(message)
         loading.base=false
       })
