@@ -52,4 +52,13 @@ public interface TopicMapper extends BaseMapper<Topic> {
     // 取消收藏
     @Delete("DELETE FROM db_topic_interact_collect WHERE tid = #{tid} AND uid = #{uid}")
     int removeCollect(@Param("tid") Integer tid, @Param("uid") Integer uid);
+
+    @Delete("DELETE FROM db_topic_interact_like WHERE tid = #{id}")
+    void deleteLikeByTid(Integer id);
+
+    @Delete("DELETE FROM db_topic_comment WHERE tid = #{id}")
+    void deleteCommentByTid(Integer id);
+
+    @Delete("DELETE FROM db_topic_interact_collect WHERE tid = #{id}")
+    void deleteCollectByTid(Integer id);
 }

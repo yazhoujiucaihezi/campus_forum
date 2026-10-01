@@ -105,13 +105,8 @@ public class ForumController {
         Topic topic = topicMapper.selectById(tid);
         BeanUtils.copyProperties(topic, topicDetailVO);
 
-        if (topic.getId() == 22) {
-            interactVO.setLikeCount(999 + topicMapper.countLikeByTid(topic.getId()));
-            interactVO.setCollectCount(999 + topicMapper.countCollectByTid(topic.getId()));
-        } else {
-            interactVO.setLikeCount(topicMapper.countLikeByTid(topic.getId()));
-            interactVO.setCollectCount(topicMapper.countCollectByTid(topic.getId()));
-        }
+        interactVO.setLikeCount(topicMapper.countLikeByTid(topic.getId()));
+        interactVO.setCollectCount(topicMapper.countCollectByTid(topic.getId()));
 
         // 当前用户有没有点赞、收藏
         interactVO.setLike(topicMapper.countLike(topic.getId(), uid) > 0);
@@ -223,6 +218,9 @@ public class ForumController {
         return Result.success(null);
     }
 
+    /**
+     * 修改帖子
+     */
     @PostMapping("/update-topic")
     public Result<Void> updateTopic(@RequestHeader("Authorization") String authHeader,
                                     @RequestBody TopicUpdateDTO dto) {
@@ -234,7 +232,46 @@ public class ForumController {
             throw new BusinessException("无权修改");
         }
         BeanUtils.copyProperties(dto, topic);
-        topicMapper.update(topic,null);
+        topicMapper.updateById(topic);
         return Result.success(null);
     }
+
+    @PostMapping("/create-topic")
+    public Result<Void> createTopic(@RequestHeader("Authorization") String authHeader,
+                                    @RequestBody TopicUpdateDTO dto) {
+        Integer uid = JwtUtils.getUid(authHeader);
+
+        if (userMapper.selectById(uid).getMute() == 1){
+            throw new BusinessException("您已被禁言，请联系管理员");
+        }
+
+        Topic topic = new Topic();
+        BeanUtils.copyProperties(dto, topic);
+        topic.setUid(uid);
+        topic.setTime(LocalDateTime.now());
+        topicMapper.insert(topic);
+        return Result.success(null);
+    }
+
+    /**
+     * 删除帖子
+     */
+    @GetMapping("/delete-topic")
+    public Result<Void> deleteTopic(@RequestHeader("Authorization") String authHeader,
+                                    @RequestParam Integer tid) {
+        Integer uid = JwtUtils.getUid(authHeader);
+        String role = JwtUtils.getRole(authHeader);
+        Topic topic = topicMapper.selectById(tid);
+        if (!"admin".equals(role) && !uid.equals(topic.getUid())) {
+            throw new BusinessException("无权删除");
+        }
+        topicMapper.deleteById(tid);
+        topicMapper.deleteLikeByTid(tid);
+        topicMapper.deleteCommentByTid(tid);
+        topicMapper.deleteCollectByTid(tid);
+
+        return Result.success(null);
+    }
+
+
 }
