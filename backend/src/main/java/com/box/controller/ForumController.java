@@ -15,6 +15,8 @@ import com.box.vo.CommentVO;
 import com.box.vo.TopicDetailVO;
 import com.box.vo.TopicInteractVO;
 import com.box.vo.TopicUserVO;
+import com.box.service.WeatherService;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +41,7 @@ public class ForumController {
     private final UserMapper userMapper;
     private final TopicCommentMapper topicCommentMapper;
     private final UserDetailMapper userDetailMapper;
+    private final WeatherService weatherService;
 
 
     /**
@@ -367,4 +370,11 @@ public class ForumController {
             return content;
         }
     }
+
+    @GetMapping("/weather")
+    public Result<JsonNode> weather(@RequestParam String longitude,
+                                    @RequestParam String latitude) {
+        return Result.success(weatherService.getWeather(longitude, latitude));
+    }
+
 }

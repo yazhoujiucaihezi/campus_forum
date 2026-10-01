@@ -1,7 +1,5 @@
 package com.box.controller;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.box.common.Result;
 import com.box.dto.ChangePasswordDTO;
 import com.box.dto.UserDetailDTO;
@@ -38,17 +36,18 @@ public class UserController {
      * 获取当前登录用户信息
      */
     @GetMapping("/info")
-    public Result<User> info(@RequestHeader("Authorization") String authHeader){
+    public Result<TopicUserVO> info(@RequestHeader("Authorization") String authHeader) {
+        Integer uid = JwtUtils.getUid(authHeader);
 
-        String token = authHeader.substring(7);
+        User user = userMapper.selectById(uid);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
 
-        DecodedJWT decodedJWT = JwtUtils.verifyToken(token);
+        TopicUserVO vo = new TopicUserVO();
+        BeanUtils.copyProperties(user, vo);
 
-        String username = decodedJWT.getClaim("username").asString();
-
-        User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
-
-        return Result.success(user);
+        return Result.success(vo);
     }
 
     /**
