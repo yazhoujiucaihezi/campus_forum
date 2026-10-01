@@ -3,10 +3,12 @@ package com.box.controller;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.box.common.Result;
+import com.box.dto.ChangePasswordDTO;
 import com.box.dto.UserDetailDTO;
 import com.box.entity.User;
 import com.box.entity.UserDetail;
 import com.box.entity.UserPrivacy;
+import com.box.exception.BusinessException;
 import com.box.mapper.UserDetailMapper;
 import com.box.mapper.UserMapper;
 import com.box.mapper.UserPrivacyMapper;
@@ -14,6 +16,7 @@ import com.box.service.UserService;
 import com.box.vo.TopicUserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.box.utils.JwtUtils;
 
@@ -99,6 +102,30 @@ public class UserController {
             userDetail.setId(uid);
             userDetailMapper.updateById(userDetail);
         }
+        return Result.success(null);
+    }
+
+    /**
+     * 修改密码
+     */
+    @PostMapping("/change-password")
+    public Result<Void> changePassword(@RequestHeader("Authorization") String authHeader,
+                                       @RequestBody ChangePasswordDTO changePasswordDTO){
+        Integer uid = JwtUtils.getUid(authHeader);
+        User user = userMapper.selectById(uid);
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        if (!bCryptPasswordEncoder.matches(changePasswordDTO.getPassword(), user.getPassword())) {
+            throw new BusinessException("原密码不正确");
+        }
+        if(changePasswordDTO.getPassword().equals(changePasswordDTO.getNew_password())){
+         throw new BusinessException("新旧密码不能相同");
+        }
+        if (!changePasswordDTO.getNew_password().equals(changePasswordDTO.getNew_password_repeat())) {
+            throw new BusinessException("两次输入的密码不一致");
+        }
+
+        user.setPassword(bCryptPasswordEncoder.encode(changePasswordDTO.getNew_password()));
+        userMapper.updateById(user);
         return Result.success(null);
     }
 }
