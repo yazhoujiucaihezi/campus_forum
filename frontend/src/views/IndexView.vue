@@ -113,7 +113,7 @@ apiForumTypes(data => {
             </template>
             <template #default="{ item }">
               <div class="search-item">
-                 <div class="title" v-if="item.highlight.title">
+                 <div class="title" v-if="item.highlight?.title">
                       <topic-tag style="margin-right: 10px;" :type="item.type"/>
                       <span v-html="item.highlight.title"></span>
                     </div>
@@ -121,7 +121,7 @@ apiForumTypes(data => {
                       <topic-tag style="margin-right: 10px;" :type="item.type"/>
                       <span>{{ item.title }}</span>
                     </div>
-                    <div class="desc" v-if="item.highlight.intro" v-html="item.highlight.intro"></div>
+                    <div class="desc" v-if="item.highlight?.intro" v-html="item.highlight.intro"></div>
                     <div class="desc" v-else>{{ item.intro }}</div>
                 </div>
             </template>
