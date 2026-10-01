@@ -3,13 +3,18 @@ package com.box.controller;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.box.common.Result;
+import com.box.dto.UserDetailDTO;
 import com.box.entity.User;
+import com.box.entity.UserDetail;
+import com.box.entity.UserPrivacy;
+import com.box.mapper.UserDetailMapper;
+import com.box.mapper.UserMapper;
+import com.box.mapper.UserPrivacyMapper;
 import com.box.service.UserService;
+import com.box.vo.TopicUserVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
 import com.box.utils.JwtUtils;
 
 /**
@@ -21,6 +26,10 @@ import com.box.utils.JwtUtils;
 public class UserController {
 
     private final UserService userService;
+    private final UserPrivacyMapper userPrivacyMapper;
+    private final UserDetailMapper userDetailMapper;
+    private final UserMapper userMapper;
+
 
     /**
      * 获取当前登录用户信息
@@ -39,4 +48,57 @@ public class UserController {
         return Result.success(user);
     }
 
+    /**
+     * 获取当前登录用户详细信息
+     */
+    @GetMapping("/details")
+    public Result<TopicUserVO> details(@RequestHeader("Authorization") String authHeader){
+        Integer uid = JwtUtils.getUid(authHeader);
+        TopicUserVO vo = new TopicUserVO();
+        User user = userService.getById(uid);
+        if (user != null) {
+            BeanUtils.copyProperties(user, vo);
+        }
+
+        UserDetail detail = userDetailMapper.selectById(uid);
+        if (detail != null) {
+            BeanUtils.copyProperties(detail, vo);
+        }
+        return Result.success(vo);
+    }
+
+    /**
+     * 获取当前登录用户隐私设置
+     */
+    @GetMapping("/privacy")
+    public Result<UserPrivacy> privacy(@RequestHeader("Authorization") String authHeader){
+        Integer uid = JwtUtils.getUid(authHeader);
+
+        UserPrivacy userPrivacy = userPrivacyMapper.selectById(uid);
+
+        return Result.success(userPrivacy);
+    }
+
+    @PostMapping("/save-details")
+    public Result<Void> saveDetails(@RequestHeader("Authorization") String authHeader,
+                                          @RequestBody UserDetailDTO userDetailDTO){
+
+        Integer uid = JwtUtils.getUid(authHeader);
+        User user = new User();
+        BeanUtils.copyProperties(userDetailDTO, user);
+        user.setId(uid);
+        userMapper.updateById(user);
+        UserDetail userDetail = userDetailMapper.selectById(uid);
+        if (userDetail == null) {
+            userDetail = new UserDetail();
+            BeanUtils.copyProperties(userDetailDTO, userDetail);
+            userDetail.setId(uid);
+            userDetailMapper.insert(userDetail);
+        } else {
+            BeanUtils.copyProperties(userDetailDTO, userDetail);
+            userDetail.setId(uid);
+            userDetailMapper.updateById(userDetail);
+        }
+        return Result.success(null);
+    }
 }
