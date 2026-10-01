@@ -3,13 +3,12 @@ package com.box.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.box.common.Result;
 import com.box.entity.Notification;
+import com.box.exception.BusinessException;
 import com.box.mapper.NotificationMapper;
 import com.box.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -30,5 +29,28 @@ public class NotificationController {
         notifications = notificationMapper.selectList(wrapper);
 
         return Result.success(notifications);
+    }
+
+    @GetMapping("/delete")
+    public Result<Void> delete(@RequestHeader("Authorization") String authHeader,
+                               @RequestParam Integer id){
+        Integer uid = JwtUtils.getUid(authHeader);
+
+        Notification notification = notificationMapper.selectById(id);
+        if (notification == null) {
+            throw new BusinessException("通知不存在");
+        }
+        if (!notification.getUid().equals(uid)) {
+            throw new BusinessException("无权删除");
+        }
+        notificationMapper.deleteById(id);
+        return Result.success(null);
+    }
+
+    @GetMapping("/delete-all")
+    public Result<Void> deleteAll(@RequestHeader("Authorization") String authHeader){
+        Integer uid = JwtUtils.getUid(authHeader);
+        notificationMapper.delete(new LambdaQueryWrapper<Notification>().eq(Notification::getUid, uid));
+        return Result.success(null);
     }
 }
