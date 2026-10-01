@@ -39,7 +39,7 @@ const props = defineProps({
       apiForumTopicCreate({
         type: editor.type.id,
         title: editor.title,
-        content: editor.text
+        content: JSON.stringify(editor.text)
       }, () => {
         ElMessage.success("帖子发表成功！")
         success()

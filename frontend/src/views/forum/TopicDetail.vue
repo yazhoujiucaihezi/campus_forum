@@ -29,6 +29,7 @@
     apiForumTopic,
     apiForumUpdateTopic
     } from "@/net/api/forum";
+    import { apiForumUserTopicDelete } from "@/net/api/forum"; 
 
     const route = useRoute()
     const store = useStore()
@@ -105,6 +106,14 @@
     loadComments(topic.page)
     })
     }
+
+    function deleteTopic() {
+       if (!confirm('确定删除这个帖子吗？')) return
+       apiForumUserTopicDelete(tid, () => {
+        ElMessage.success('删除成功')
+        router.push('/index')
+       })
+}
 </script>
 
 <template>
@@ -164,6 +173,13 @@
                                      v-if="store.user.id===topic.data.user.id">
                         <el-icon><EditPen /></el-icon>
                     </interact-button>
+
+                    <interact-button name="删除帖子" color="red" :check="false"
+                                     @check="deleteTopic" style="margin-right: 20px"
+                                     v-if="store.user.id===topic.data.user.id || store.user.role==='admin'">
+                        <el-icon><Delete /></el-icon>
+                    </interact-button>
+
                     <interact-button :name="`点个赞吧 (${topic.likeCount})`" :check-name="`已点赞 (${topic.likeCount})`" color="pink" :check="topic.like"
                                      @check="interact('like','点赞')">
                         {{ topic.like ? '❤️' : '🤍' }}
