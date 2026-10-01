@@ -273,5 +273,32 @@ public class ForumController {
         return Result.success(null);
     }
 
+    @GetMapping("/user-topic")
+    public Result<List<Topic>> getUserTopic(@RequestHeader("Authorization") String authHeader){
+        Integer uid = JwtUtils.getUid(authHeader);
+        LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Topic::getUid, uid);
+        wrapper.orderByDesc(Topic::getTime);
+        List<Topic> topics = topicMapper.selectList(wrapper);
+        for (Topic topic : topics) {
+            topic.setLike(topicMapper.countLikeByTid(topic.getId()));
+            topic.setCollect(topicMapper.countCollectByTid(topic.getId()));
+        }
+        return Result.success(topics);
+    }
 
+    @GetMapping("/search-topic")
+    public Result<List<Topic>> searchTopic(@RequestParam String keyword) {
+        LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(Topic::getTitle, keyword);
+        wrapper.eq(Topic::getInvisible, 0);
+        wrapper.orderByDesc(Topic::getTime);
+        wrapper.last("LIMIT 20");
+        List<Topic> list = topicMapper.selectList(wrapper);
+        for (Topic t : list) {
+            t.setLike(topicMapper.countLikeByTid(t.getId()));
+            t.setCollect(topicMapper.countCollectByTid(t.getId()));
+        }
+        return Result.success(list);
+    }
 }
