@@ -3,7 +3,9 @@ package com.box.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.box.common.Result;
 import com.box.dto.LoginDTO;
+import com.box.dto.RegisterDTO;
 import com.box.entity.User;
+import com.box.exception.BusinessException;
 import com.box.mapper.UserMapper;
 import com.box.service.AuthService;
 import com.box.vo.LoginVO;
@@ -11,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,11 +49,16 @@ public class AuthController {
         return Result.success(vo);
     }
 
+    /**
+     * 用户登出
+     */
     @GetMapping("/logout")
     public Result<Void> logout(){
         return Result.success(null);
     }
-
+    /**
+     * 获取验证码
+     */
     @GetMapping("/ask-code")
     public Result<Void> askCode(@RequestParam String email,
                                 @RequestParam String type){
@@ -64,11 +74,49 @@ public class AuthController {
         message.setTo(email);                     // 收件人
         if ("register".equals(type)) {
             message.setSubject("注册验证邮件");
-            message.setText("您正在注册校园论坛账号，验证码：" + code + "，3分钟内有效。");
+            message.setText("您正在注册校园论坛账号，验证码： + " + code + "，3分钟内有效。");
         } else if ("modify".equals(type)) {
             message.setSubject("邮箱修改验证邮件");
-            message.setText("您正在绑定新的电子邮箱，验证码：" + code + "，3分钟内有效。");
+            message.setText("您正在绑定新的电子邮箱，验证码： + " + code + "，3分钟内有效。");
         }javaMailSender.send(message);
+        return Result.success(null);
+    }
+
+    /**
+     * 用户注册
+     */
+    @PostMapping("/register")
+    public Result<Void> register(@RequestBody RegisterDTO dto) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String code = stringRedisTemplate.opsForValue().get(dto.getEmail() + ":register");
+        if (code == null) {
+            throw new BusinessException("验证码已过期");
+        }
+        if (!code.equals(dto.getCode())) {
+            throw new BusinessException("验证码错误");
+        }
+        if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, dto.getEmail())) != null) {
+            throw new BusinessException("邮箱已存在");
+        }
+        if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername())) != null) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 加密密码
+        String encoded = passwordEncoder.encode(dto.getPassword());
+
+        User user = new User();
+        user.setUsername(dto.getUsername());
+        user.setPassword(encoded);
+        user.setEmail(dto.getEmail());
+        user.setRole("user");
+        user.setMute(0);
+        user.setBanned(0);
+        user.setCreateTime(LocalDateTime.now());
+
+        userMapper.insert(user);
+
+        stringRedisTemplate.delete(dto.getEmail() + ":register");
         return Result.success(null);
     }
 }
