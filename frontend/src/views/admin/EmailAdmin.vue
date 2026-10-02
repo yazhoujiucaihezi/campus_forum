@@ -30,7 +30,7 @@ const resendEmail = (row) => {
 
 watchEffect(() => {
     apiEmailRecordList(emailList.page, emailList.size, data => {
-        emailList.list = data.list
+        emailList.list = data.records
         emailList.total = data.total
     })
 })

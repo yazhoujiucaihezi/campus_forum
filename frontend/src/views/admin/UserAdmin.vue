@@ -46,7 +46,7 @@ function changePassword({ id, username }) {
 
 watchEffect(() => apiUserList(userTable.page, userTable.size,keyword.value,data => {
     userTable.total = data.total
-    userTable.data = data.list
+    userTable.data = data.records
 }))
 
 </script>
