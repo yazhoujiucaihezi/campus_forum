@@ -114,17 +114,10 @@ public class ForumController {
             BeanUtils.copyProperties(topic, topicDetailVO);
         }
 
-        if (topic != null) {
+        if(topic != null) {
             interactVO.setLikeCount(topicMapper.countLikeByTid(topic.getId()));
-        }
-        if (topic != null) {
             interactVO.setCollectCount(topicMapper.countCollectByTid(topic.getId()));
-        }
-
-        if (topic != null) {
             interactVO.setLike(topicMapper.countLike(topic.getId(), uid) > 0);
-        }
-        if (topic != null) {
             interactVO.setCollect(topicMapper.countCollect(topic.getId(), uid) > 0);
         }
 
