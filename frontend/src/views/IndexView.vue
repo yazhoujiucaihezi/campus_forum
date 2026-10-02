@@ -96,7 +96,7 @@ apiForumTypes(data => {
 
 <template>
   <div class="main-content" v-loading="loading" element-loading-text="正在进入，请稍后...">
-    <ai-chat-window/>
+    <ai-chat-window v-if="$route.name !== 'topic-detail'"/>
     <el-container style="height: 100%" v-if="!loading">
       <el-header class="main-content-header">
         <div style="width: 320px;height: 32px">

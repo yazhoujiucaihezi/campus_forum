@@ -1,9 +1,7 @@
 <script setup>
 
-import {Hide, Lock, Top, User} from "@element-plus/icons-vue";
 import {reactive, ref, watchEffect} from "vue";
 import {
-    apiForumProhibit, apiForumProhibitedList,
     apiForumTopicAllList,
     apiForumTopicDelete, apiForumTopicInvisible,
     apiForumTopicLocked,
@@ -12,9 +10,7 @@ import {
 } from "@/net/api/forum";
 import {useStore} from "@/store";
 import {ElMessage, ElMessageBox} from "element-plus";
-import ForumTopicAdmin from "@/views/admin/section/ForumTopicAdmin.vue";
-import ForumTopicProhibitedAdmin from "@/views/admin/section/ForumTopicProhibitedAdmin.vue";
-const findType = type => props.types.find(item => item.id === type)
+import {Hide, Lock, Top, User, Search} from "@element-plus/icons-vue";
 
 const store = useStore();
 const topicList = reactive({
@@ -26,7 +22,7 @@ const topicList = reactive({
 const props = defineProps({
     types: Array,
 })
-
+const findType = type => props.types.find(item => item.id === type)
 
 const keyword = ref('')
 const searchText = ref('')
@@ -67,7 +63,7 @@ const lockTopic = (tid, locked) => {
 
 const refreshList = () => {
     apiForumTopicAllList(topicList.page, topicList.size,keyword.value, data => {
-        topicList.list = data.list;
+        topicList.list = data.records;
         topicList.total = data.total;
     })
 }

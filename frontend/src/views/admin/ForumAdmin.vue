@@ -1,7 +1,6 @@
 <script setup>
 import {ref} from "vue";
 import ForumTopicAdmin from "@/views/admin/section/ForumTopicAdmin.vue";
-import ForumTopicProhibitedAdmin from "@/views/admin/section/ForumTopicProhibitedAdmin.vue";
 import {apiForumTypes} from "@/net/api/forum";
 import ForumTopicTypeAdmin from "@/views/admin/section/ForumTopicTypeAdmin.vue";
 
@@ -18,7 +17,6 @@ initTypes()
     </div>
     <forum-topic-type-admin :types="types" @update="initTypes"/>
 
-    <forum-topic-prohibited-admin/>
 </div>
 </template>
 
