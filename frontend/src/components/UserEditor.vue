@@ -72,7 +72,7 @@ function openUserEditor(user) {
                     </div>
                 </div>
                 <div style="margin-top: 10px;color: #606266;font-size: 14px;">
-                    注册时间：{{new Date(editor.temp.registerTime).toLocaleString()}}
+                    注册时间：{{new Date(editor.temp.createTime).toLocaleString()}}
                 </div>
                 <el-divider/>
                 <el-form-item label="性别">
@@ -96,19 +96,19 @@ function openUserEditor(user) {
                 <el-divider/>
                 <div>
                     <div>隐私设置</div>
-                    <el-checkbox v-model="editor.temp.privacy.phone">
+                    <el-checkbox v-model="editor.temp.privacy.phone" :true-value="1" :false-value="0">
                         公开展示用户的手机号
                     </el-checkbox>
-                    <el-checkbox v-model="editor.temp.privacy.email">
+                    <el-checkbox v-model="editor.temp.privacy.email" :true-value="1" :false-value="0">
                         公开展示用户的电子邮件地址
                     </el-checkbox>
-                    <el-checkbox v-model="editor.temp.privacy.wx">
+                    <el-checkbox v-model="editor.temp.privacy.wx" :true-value="1" :false-value="0">
                         公开展示用户的微信号
                     </el-checkbox>
-                    <el-checkbox v-model="editor.temp.privacy.qq">
+                    <el-checkbox v-model="editor.temp.privacy.qq" :true-value="1" :false-value="0">
                         公开展示用户的QQ号
                     </el-checkbox>
-                    <el-checkbox v-model="editor.temp.privacy.gender">
+                    <el-checkbox v-model="editor.temp.privacy.gender" :true-value="1" :false-value="0">
                         公开展示用户的性别
                     </el-checkbox>
                 </div>

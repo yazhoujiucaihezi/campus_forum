@@ -4,14 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.box.common.Result;
 import com.box.dto.AdminStatusDTO;
+import com.box.dto.AdminUserSaveDTO;
 import com.box.dto.TopicTypeDTO;
-import com.box.entity.Topic;
-import com.box.entity.TopicType;
-import com.box.entity.User;
-import com.box.mapper.TopicMapper;
-import com.box.mapper.TopicTypeMapper;
-import com.box.mapper.UserMapper;
+import com.box.entity.*;
+import com.box.mapper.*;
 import com.box.utils.JwtUtils;
+import com.box.vo.AdminUserDetailVO;
+import com.box.vo.AdminUserPrivacyVO;
+import com.box.vo.AdminUserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +26,8 @@ public class adminController {
     private final TopicMapper topicMapper;
     private final TopicTypeMapper topicTypeMapper;
     private final UserMapper userMapper;
+    private final UserDetailMapper userDetailMapper;
+    private final UserPrivacyMapper userPrivacyMapper;
 
 
 
@@ -173,6 +175,55 @@ public class adminController {
             u.setPassword(null);
         }
         return Result.success(userPage);
+    }
+
+    /**
+     * 获取用户详情
+     */
+    @GetMapping("/user/detail")
+    public Result<AdminUserVO> getUserDetail(@RequestHeader("Authorization") String authHeader,
+                                             @RequestParam Integer id){
+        checkRole(authHeader);
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        AdminUserVO adminUserVO = new AdminUserVO();
+        BeanUtils.copyProperties(user, adminUserVO);
+        UserDetail userDetail = userDetailMapper.selectById(id);
+        if (userDetail != null) {
+            AdminUserDetailVO adminUserDetailVO = new AdminUserDetailVO();
+            BeanUtils.copyProperties(userDetail, adminUserDetailVO);
+            adminUserVO.setDetail(adminUserDetailVO);
+        }
+        UserPrivacy userPrivacy = userPrivacyMapper.selectById(id);
+        if (userPrivacy != null) {
+            AdminUserPrivacyVO adminUserPrivacyVO = new AdminUserPrivacyVO();
+            BeanUtils.copyProperties(userPrivacy, adminUserPrivacyVO);
+            adminUserVO.setPrivacy(adminUserPrivacyVO);
+        }
+
+        return Result.success(adminUserVO);
+    }
+
+    @PostMapping("/user/save")
+    public Result<Void> saveUser(@RequestHeader("Authorization") String authHeader,
+                                 @RequestBody AdminUserSaveDTO dto) {
+        checkRole(authHeader);
+        User user = new User();
+        BeanUtils.copyProperties(dto, user);
+        user.setMute(Boolean.TRUE.equals(dto.getMute()) ? 1 : 0);
+        user.setBanned(Boolean.TRUE.equals(dto.getBanned()) ? 1 : 0);
+        userMapper.updateById(user);
+        UserDetail userDetail = new UserDetail();
+        BeanUtils.copyProperties(dto.getDetail(), userDetail);
+        userDetail.setId(dto.getId());
+        userDetailMapper.updateById(userDetail);
+        UserPrivacy userPrivacy = new UserPrivacy();
+        BeanUtils.copyProperties(dto.getPrivacy(), userPrivacy);
+        userPrivacy.setId(dto.getId());
+        userPrivacyMapper.updateById(userPrivacy);
+        return Result.success(null);
     }
 
     public void checkRole(String authHeader) {
