@@ -10,3 +10,7 @@ qweather:
   sub: 2AE3U8NW7V
   iss: Q1722007A5
   private-key-path: D:/forum/backend/ed25519-private.pem
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
