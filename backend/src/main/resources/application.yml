@@ -4,6 +4,17 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 2464859727@qq.com
+    password: oujvjsnnpkamdiie
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 qweather:
   host: https://nk6mthkn5k.re.qweatherapi.com
   kid: KEB55MARN2
