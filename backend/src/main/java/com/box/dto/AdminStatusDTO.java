@@ -7,4 +7,5 @@ import lombok.Data;
 public class AdminStatusDTO {
     private Integer tid;      // 帖子 ID
     private Boolean status;   // true 启用，false 取消
+    private Boolean locked;   // true 锁定，false 解锁
 }

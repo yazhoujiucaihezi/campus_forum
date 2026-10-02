@@ -8,14 +8,17 @@ import com.box.entity.Topic;
 import com.box.mapper.TopicMapper;
 import com.box.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@Transactional
 public class adminController {
 
     private final TopicMapper topicMapper;
+
 
     /**
      * 获取论坛列表
@@ -54,7 +57,7 @@ public class adminController {
     /**
      * 删除帖子
      */
-    @DeleteMapping("/forum/delete")
+    @GetMapping("/forum/delete")
     public Result<?> deleteForum(@RequestHeader("Authorization") String authHeader,
                                  @RequestParam Integer tid) {
         checkRole(authHeader);
@@ -62,10 +65,42 @@ public class adminController {
         if (topic == null) {
             throw new RuntimeException("帖子不存在");
         }
+
+        topicMapper.deleteCommentByTid(tid);
+        topicMapper.deleteLikeByTid(tid);
+        topicMapper.deleteCollectByTid(tid);
         topicMapper.deleteById(tid);
+
         return Result.success("操作成功");
     }
 
+    /**
+     * 锁定/解锁帖子
+     */
+    @PostMapping("/forum/locked")
+    public Result<Void> lockedForum(@RequestHeader("Authorization") String authHeader,
+                                    @RequestBody AdminStatusDTO adminStatusDTO) {
+        checkRole(authHeader);
+        Integer tid = adminStatusDTO.getTid();
+        Boolean locked = adminStatusDTO.getLocked();
+        Topic topic = topicMapper.selectById(tid);
+        topic.setLocked(locked ? 1 : 0);
+        topicMapper.updateById(topic);
+        return Result.success(null);
+    }
+
+    @PostMapping("/forum/invisible")
+    public Result<Void> invisibleForum(@RequestHeader("Authorization") String authHeader,
+                                       @RequestBody AdminStatusDTO adminStatusDTO) {
+        checkRole(authHeader);
+        Integer tid = adminStatusDTO.getTid();
+        Boolean invisible = adminStatusDTO.getStatus();
+        Topic topic = topicMapper.selectById(tid);
+        topic.setInvisible(invisible ? 1 : 0);
+        topic.setTop(invisible ? 0 : 1);
+        topicMapper.updateById(topic);
+        return Result.success(null);
+    }
 
 
     public void checkRole(String authHeader) {
