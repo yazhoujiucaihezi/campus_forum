@@ -32,7 +32,7 @@ function openUserEditor(user) {
     editor.display = true
     editor.loading = true
     apiUserDetailTotal(editor.id, data => {
-        editor.temp = { ...data, ...user }
+        editor.temp = { ...user, ...data }
         editor.loading = false
     })
 }

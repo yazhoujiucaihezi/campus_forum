@@ -3,6 +3,7 @@ package com.box.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.box.common.Result;
+import com.box.dto.AdminChangePasswordDTO;
 import com.box.dto.AdminStatusDTO;
 import com.box.dto.AdminUserSaveDTO;
 import com.box.dto.TopicTypeDTO;
@@ -14,6 +15,7 @@ import com.box.vo.AdminUserPrivacyVO;
 import com.box.vo.AdminUserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -190,6 +192,8 @@ public class adminController {
         }
         AdminUserVO adminUserVO = new AdminUserVO();
         BeanUtils.copyProperties(user, adminUserVO);
+        adminUserVO.setMute(user.getMute() != null && user.getMute() == 1);
+        adminUserVO.setBanned(user.getBanned() != null && user.getBanned() == 1);
         UserDetail userDetail = userDetailMapper.selectById(id);
         if (userDetail != null) {
             AdminUserDetailVO adminUserDetailVO = new AdminUserDetailVO();
@@ -223,6 +227,20 @@ public class adminController {
         BeanUtils.copyProperties(dto.getPrivacy(), userPrivacy);
         userPrivacy.setId(dto.getId());
         userPrivacyMapper.updateById(userPrivacy);
+        return Result.success(null);
+    }
+
+    @PostMapping("/user/change-password")
+    public Result<Void> changePassword(@RequestHeader("Authorization") String authHeader,
+                                       @RequestBody AdminChangePasswordDTO dto) {
+        checkRole(authHeader);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        User user = userMapper.selectById(dto.getId());
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userMapper.updateById(user);
         return Result.success(null);
     }
 

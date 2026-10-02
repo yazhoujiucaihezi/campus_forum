@@ -19,6 +19,7 @@ import com.box.service.WeatherService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import com.box.utils.JwtUtils;
@@ -105,15 +106,27 @@ public class ForumController {
         TopicInteractVO interactVO = new TopicInteractVO();
         TopicUserVO userVO = topicMapper.getTopicUser(tid);
         UserDetail userDetail = userDetailMapper.selectById(userVO.getId());
-        BeanUtils.copyProperties(userDetail, userVO);
+        if (userDetail != null) {
+            BeanUtils.copyProperties(userDetail, userVO);
+        }
         Topic topic = topicMapper.selectById(tid);
-        BeanUtils.copyProperties(topic, topicDetailVO);
+        if (topic != null) {
+            BeanUtils.copyProperties(topic, topicDetailVO);
+        }
 
-        interactVO.setLikeCount(topicMapper.countLikeByTid(topic.getId()));
-        interactVO.setCollectCount(topicMapper.countCollectByTid(topic.getId()));
+        if (topic != null) {
+            interactVO.setLikeCount(topicMapper.countLikeByTid(topic.getId()));
+        }
+        if (topic != null) {
+            interactVO.setCollectCount(topicMapper.countCollectByTid(topic.getId()));
+        }
 
-        interactVO.setLike(topicMapper.countLike(topic.getId(), uid) > 0);
-        interactVO.setCollect(topicMapper.countCollect(topic.getId(), uid) > 0);
+        if (topic != null) {
+            interactVO.setLike(topicMapper.countLike(topic.getId(), uid) > 0);
+        }
+        if (topic != null) {
+            interactVO.setCollect(topicMapper.countCollect(topic.getId(), uid) > 0);
+        }
 
         topicDetailVO.setInteract(interactVO);
         topicDetailVO.setComments(topicMapper.countComments(tid));
@@ -201,6 +214,10 @@ public class ForumController {
                                    @RequestBody CommentDTO commentDTO) {
 
         Integer uid = JwtUtils.getUid(authHeader);
+
+        if (userMapper.selectById(uid).getMute() == 1){
+            throw new BusinessException("乱嘿讲被禁言了舒服吗");
+        }
 
         TopicComment topicComment = new TopicComment();
         BeanUtils.copyProperties(commentDTO, topicComment);
@@ -306,13 +323,7 @@ public class ForumController {
         Integer uid = JwtUtils.getUid(authHeader);
         LambdaQueryWrapper<Topic> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Topic::getUid, uid);
-        wrapper.orderByDesc(Topic::getTime);
-        List<Topic> topics = topicMapper.selectList(wrapper);
-        for (Topic topic : topics) {
-            topic.setLike(topicMapper.countLikeByTid(topic.getId()));
-            topic.setCollect(topicMapper.countCollectByTid(topic.getId()));
-        }
-        return Result.success(topics);
+        return getListResult(wrapper);
     }
 
     /** 搜索帖子 */
@@ -341,6 +352,11 @@ public class ForumController {
             return Result.success(new ArrayList<>());
         }
         wrapper.in(Topic::getId, collectTids);
+        return getListResult(wrapper);
+    }
+
+    @NotNull
+    private Result<List<Topic>> getListResult(LambdaQueryWrapper<Topic> wrapper) {
         wrapper.orderByDesc(Topic::getTime);
         List<Topic> list = topicMapper.selectList(wrapper);
         for (Topic t : list) {
