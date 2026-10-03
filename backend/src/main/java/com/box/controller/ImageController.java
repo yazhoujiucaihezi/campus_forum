@@ -58,11 +58,14 @@ public class ImageController {
     @PostMapping("/cache")
     public Result<String> cache(@RequestHeader("Authorization") String authHeader,
                                 @RequestParam("file") MultipartFile file){
+        //获得uid
         Integer uid = JwtUtils.getUid(authHeader);
         User user = userMapper.selectById(uid);
+        //查看user和file是否为null
         checkFile(file, user);
-
+        //生成日期
         String date = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        //??
         String diskPath = uploadDir + "cache/" + date;
         File dest = new File(diskPath);
         dest.getParentFile().mkdirs();
