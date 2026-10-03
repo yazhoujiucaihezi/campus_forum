@@ -15,6 +15,15 @@ spring:
           auth: true
           starttls:
             enable: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+app:
+  upload:
+    dir: D:/forum/backend/uploads/
+
 qweather:
   host: https://nk6mthkn5k.re.qweatherapi.com
   kid: KEB55MARN2
