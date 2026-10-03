@@ -1,7 +1,9 @@
 package com.box.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.box.common.Result;
 import com.box.dto.ChangePasswordDTO;
+import com.box.dto.RegisterDTO;
 import com.box.dto.UserDetailDTO;
 import com.box.entity.User;
 import com.box.entity.UserDetail;
@@ -14,6 +16,7 @@ import com.box.service.UserService;
 import com.box.vo.TopicUserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.box.utils.JwtUtils;
@@ -30,6 +33,7 @@ public class UserController {
     private final UserPrivacyMapper userPrivacyMapper;
     private final UserDetailMapper userDetailMapper;
     private final UserMapper userMapper;
+    private final StringRedisTemplate stringRedisTemplate;
 
 
     /**
@@ -124,6 +128,31 @@ public class UserController {
         }
 
         user.setPassword(bCryptPasswordEncoder.encode(changePasswordDTO.getNew_password()));
+        userMapper.updateById(user);
+        return Result.success(null);
+    }
+
+    @PostMapping("/modify-email")
+    public Result<Void> modifyEmail(@RequestHeader("Authorization") String authHeader,
+                                    @RequestBody RegisterDTO dto) {
+        Integer uid = JwtUtils.getUid(authHeader);
+        User user = userMapper.selectById(uid);
+        String oldEmail = user.getEmail();
+        String newEmail = dto.getEmail();
+        if (oldEmail.equals(newEmail)){
+            throw new BusinessException("新旧邮箱不能重复");
+        }
+        if (userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, newEmail)) != null) {
+            throw new BusinessException("邮箱已存在");
+        }
+        String code = stringRedisTemplate.opsForValue().get(newEmail + ":modify");
+        if(code == null){
+            throw new BusinessException("验证码已过期");
+        }
+        if(!code.equals(dto.getCode())) {
+            throw new BusinessException("验证码错误");
+        }
+        user.setEmail(newEmail);
         userMapper.updateById(user);
         return Result.success(null);
     }

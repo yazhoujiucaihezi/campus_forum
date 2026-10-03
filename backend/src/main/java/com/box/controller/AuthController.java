@@ -8,6 +8,7 @@ import com.box.entity.User;
 import com.box.exception.BusinessException;
 import com.box.mapper.UserMapper;
 import com.box.service.AuthService;
+import com.box.utils.JwtUtils;
 import com.box.vo.LoginVO;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -157,6 +158,9 @@ public class AuthController {
         return Result.success(null);
     }
 
+    /**
+     * 重置密码
+     */
     @PostMapping("/reset-password")
     public Result<Void> resetPassword(@RequestBody RegisterDTO dto) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -170,4 +174,5 @@ public class AuthController {
         stringRedisTemplate.delete(dto.getEmail() + ":reset");
         return Result.success(null);
     }
+
 }
