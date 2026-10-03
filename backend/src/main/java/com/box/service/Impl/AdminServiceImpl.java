@@ -15,12 +15,9 @@ import com.box.vo.AdminUserPrivacyVO;
 import com.box.vo.AdminUserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 /**
  * 后台管理服务实现
@@ -38,7 +35,6 @@ public class AdminServiceImpl implements AdminService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final EmailMapper emailMapper;
     private final AuthServiceImpl authServiceImpl;
-    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * 获取论坛帖子列表
