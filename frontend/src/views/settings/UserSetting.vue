@@ -11,7 +11,7 @@ import {apiAuthAskCode, apiUserDetail, apiUserDetailSave, apiUserModifyEmail} fr
 
 const store = useStore()
 
-const registerTime =computed(()=> new Date(store.user.registerTime).toLocaleString())
+const createTime =computed(()=> new Date(store.user.createTime).toLocaleString())
 
 const desc =ref('')
 const baseFormRef = ref()
@@ -215,7 +215,7 @@ onMounted(() => {
           </div>
         </card>
         <card style="margin-top: 10px;font-size: 14px">
-          <div >账号注册时间：{{registerTime}}</div>
+          <div >账号注册时间：{{createTime}}</div>
           <div style="color: grey">欢迎加入我们的学习论坛！</div>
         </card>
       </div>
