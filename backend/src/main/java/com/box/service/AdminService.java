@@ -52,4 +52,6 @@ public interface AdminService {
     void changePassword(String role, AdminChangePasswordDTO dto);
 
     Page<EmailRecord> getEmailList(String role, Integer page, Integer size);
+
+    void resendEmail(String role, Integer id);
 }

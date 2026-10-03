@@ -177,7 +177,7 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
     }
 
     @NotNull
-    private static SimpleMailMessage getSimpleMailMessage(String email, String type, int code) {
+    public static SimpleMailMessage getSimpleMailMessage(String email, String type, int code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("2464859727@qq.com");     // 发件人
         message.setTo(email);                     // 收件人

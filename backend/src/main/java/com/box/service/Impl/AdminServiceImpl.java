@@ -7,6 +7,7 @@ import com.box.dto.AdminStatusDTO;
 import com.box.dto.AdminUserSaveDTO;
 import com.box.dto.TopicTypeDTO;
 import com.box.entity.*;
+import com.box.exception.BusinessException;
 import com.box.mapper.*;
 import com.box.service.AdminService;
 import com.box.vo.AdminUserDetailVO;
@@ -14,9 +15,12 @@ import com.box.vo.AdminUserPrivacyVO;
 import com.box.vo.AdminUserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 /**
  * 后台管理服务实现
@@ -33,6 +37,8 @@ public class AdminServiceImpl implements AdminService {
     private final UserPrivacyMapper userPrivacyMapper;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final EmailMapper emailMapper;
+    private final AuthServiceImpl authServiceImpl;
+    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * 获取论坛帖子列表
@@ -226,12 +232,35 @@ public class AdminServiceImpl implements AdminService {
         userMapper.updateById(user);
     }
 
+    /**
+     * 获取邮件列表
+     */
     @Override
     public Page<EmailRecord> getEmailList(String role, Integer page, Integer size) {
         checkRole(role);
         LambdaQueryWrapper<EmailRecord> queryWrapper = new LambdaQueryWrapper<>();
-
         return emailMapper.selectPage(new Page<>(page, size), queryWrapper);
+    }
+
+    @Override
+    public void resendEmail(String role, Integer id) {
+        checkRole(role);
+        EmailRecord emailRecord = emailMapper.selectById(id);
+        String type;
+        String title = emailRecord.getTitle();
+        if (title.contains("注册")) {
+            type = "register";
+        } else if (title.contains("修改")) {
+            type = "modify";
+        } else {
+            type = "reset";
+        }
+
+        try {
+            authServiceImpl.askCode(emailRecord.getEmail(),type);
+        } catch (Exception e) {
+            throw new BusinessException("邮件重发失败");
+        }
     }
 
     /**

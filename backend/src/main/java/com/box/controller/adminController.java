@@ -144,6 +144,9 @@ public class adminController {
         return Result.success(null);
     }
 
+    /**
+     * 获取邮件列表
+     */
     @GetMapping("/email/list")
     public Result<Page<EmailRecord>> getEmailList(@RequestHeader("Authorization") String authHeader,
                                                   @RequestParam Integer page,
@@ -151,4 +154,13 @@ public class adminController {
         return Result.success(adminService.getEmailList(JwtUtils.getRole(authHeader), page, size));
     }
 
+    /**
+     * 重新发送邮件
+     */
+    @GetMapping("/email/resend")
+    public Result<?> resendEmail(@RequestHeader("Authorization") String authHeader,
+                                 @RequestParam Integer id) {
+        adminService.resendEmail(JwtUtils.getRole(authHeader), id);
+        return Result.success("邮件已重新发送");
+    }
 }
