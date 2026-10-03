@@ -4,6 +4,16 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  ai:
+    openai:
+      api-key: sk-refcxdamdezypyzeyxtqjjkpltdaltacrbsivtcecxamfxvb
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          # 首选方案
+          model: Qwen/Qwen3-8B
+
   mail:
     host: smtp.qq.com
     port: 587

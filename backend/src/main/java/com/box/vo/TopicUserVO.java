@@ -2,6 +2,8 @@ package com.box.vo;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /** 帖子关联用户展示数据 */
 @Data
 public class TopicUserVO {
@@ -23,4 +25,6 @@ public class TopicUserVO {
     private String phone;
     /** 个人简介 */
     private String desc;
+    /** 创建时间 */
+    private LocalDateTime createTime;
 }
