@@ -240,3 +240,17 @@ const editorOption = {
   margin: 0;
 }
 </style>
+
+<style>
+.ql-editor img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+  object-fit: contain;
+}
+.ql-editor span[contenteditable="false"] {
+  max-width: 100% !important;
+}
+</style>
