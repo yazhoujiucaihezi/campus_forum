@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.box.dto.ChangePasswordDTO;
 import com.box.dto.RegisterDTO;
 import com.box.dto.UserDetailDTO;
+import com.box.dto.UserPrivacyDTO;
 import com.box.entity.User;
 import com.box.entity.UserPrivacy;
 import com.box.vo.TopicUserVO;
@@ -30,4 +31,7 @@ public interface UserService extends IService<User> {
 
     /** 修改邮箱 */
     void modifyEmail(Integer uid, RegisterDTO dto);
+
+    /** 保存用户隐私设置 */
+    void savePrivacy(Integer uid, UserPrivacyDTO dto);
 }

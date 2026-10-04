@@ -229,17 +229,19 @@ public class ForumServiceImpl extends ServiceImpl<ForumMapper, Forum> implements
             message.setUrl("/index/topic-detail/" + topic.getId());
             rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_QUEUE, message);
         }
-        Integer replyId = topicCommentMapper.selectById(topicComment.getQuote()).getUid();
-        if (topicComment.getQuote()>0 &&!topicComment.getUid().equals(replyId)){
+        if(topicComment.getQuote()>0){
+            Integer replyId = topicCommentMapper.selectById(topicComment.getQuote()).getUid();
+        if (!topicComment.getUid().equals(replyId)) {
             NotificationMessage message = new NotificationMessage();
             message.setUid(replyId);
             message.setTitle("您的评论《" + parseQuillText(topicCommentMapper.selectById(topicComment.getQuote()).getContent()) + "》有新回复");
             message.setContent(
                     userMapper.selectById(uid).getUsername()
-                            + ":" +parseQuillText(topicComment.getContent()));
+                            + ":" + parseQuillText(topicComment.getContent()));
             message.setType("reply");
             message.setUrl("/index/topic-detail/" + replyId);
             rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_QUEUE, message);
+        }
         }
     }
 

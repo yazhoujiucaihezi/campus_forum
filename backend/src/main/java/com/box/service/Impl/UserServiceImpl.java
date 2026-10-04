@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.box.dto.ChangePasswordDTO;
 import com.box.dto.RegisterDTO;
 import com.box.dto.UserDetailDTO;
+import com.box.dto.UserPrivacyDTO;
 import com.box.entity.EmailRecord;
 import com.box.entity.User;
 import com.box.entity.UserDetail;
@@ -149,5 +150,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         wrapper.set(EmailRecord::getStatus, 2);
         emailMapper.update(null, wrapper);
         stringRedisTemplate.delete(newEmail + ":modify");
+    }
+
+    /**
+     * 保存用户隐私设置
+     */
+    @Override
+    public void savePrivacy(Integer uid, UserPrivacyDTO dto) {
+        UserPrivacy privacy = userPrivacyMapper.selectById(uid);
+        boolean isNew = (privacy == null);
+        if (isNew) {
+            privacy = new UserPrivacy();
+            privacy.setId(uid);
+        }
+
+        int value = Boolean.TRUE.equals(dto.getStatus()) ? 1 : 0;
+        switch (dto.getType()) {
+            case "phone":  privacy.setPhone(value);  break;
+            case "email":  privacy.setEmail(value);  break;
+            case "wx":     privacy.setWx(value);     break;
+            case "qq":     privacy.setQq(value);     break;
+            case "gender": privacy.setGender(value); break;
+        }
+
+        if (isNew) {
+            userPrivacyMapper.insert(privacy);
+        } else {
+            userPrivacyMapper.updateById(privacy);
+        }
     }
 }

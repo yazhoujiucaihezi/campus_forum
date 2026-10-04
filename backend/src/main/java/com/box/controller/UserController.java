@@ -4,6 +4,7 @@ import com.box.common.Result;
 import com.box.dto.ChangePasswordDTO;
 import com.box.dto.RegisterDTO;
 import com.box.dto.UserDetailDTO;
+import com.box.dto.UserPrivacyDTO;
 import com.box.entity.UserPrivacy;
 import com.box.service.UserService;
 import com.box.vo.TopicUserVO;
@@ -27,6 +28,16 @@ public class UserController {
     @GetMapping("/info")
     public Result<TopicUserVO> info(@RequestHeader("Authorization") String authHeader) {
         return Result.success(userService.getInfo(JwtUtils.getUid(authHeader)));
+    }
+
+    /**
+     * 保存用户隐私设置
+     */
+    @PostMapping("/save-privacy")
+    public Result<Void> savePrivacy(@RequestHeader("Authorization") String authHeader,
+                                    @RequestBody UserPrivacyDTO dto) {
+        userService.savePrivacy(JwtUtils.getUid(authHeader), dto);
+        return Result.success(null);
     }
 
     /**

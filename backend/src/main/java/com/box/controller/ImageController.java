@@ -74,7 +74,6 @@ public class ImageController {
         } catch (IOException e) {
             throw new BusinessException("上传失败");
         }
-        System.out.println("返回路径: " + "/cache/" + date);
         return Result.success("/cache/" + date);
     }
 

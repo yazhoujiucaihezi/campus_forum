@@ -40,7 +40,7 @@ public class QWeatherJwtUtil {
             KeyFactory kf = KeyFactory.getInstance("Ed25519");
             PrivateKey privateKey = kf.generatePrivate(spec);
 
-            String token = Jwts.builder()
+            return Jwts.builder()
                     .header().keyId(kid).and()
                     .issuer(iss)
                     .subject(sub)
@@ -48,11 +48,6 @@ public class QWeatherJwtUtil {
                     .expiration(new Date(System.currentTimeMillis() + 3600 * 1000))
                     .signWith(privateKey, Jwts.SIG.EdDSA)
                     .compact();
-
-
-            System.out.println("JWT13131:" + token);
-
-            return token;
         } catch (Exception e) {
             throw new RuntimeException("生成天气JWT失败", e);
         }
