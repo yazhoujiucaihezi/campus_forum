@@ -5,6 +5,12 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  rabbitmq:
+    host: 192.168.181.128
+    port: 5672
+    username: box
+    password: 123
+
   ai:
     openai:
       api-key: sk-refcxdamdezypyzeyxtqjjkpltdaltacrbsivtcecxamfxvb

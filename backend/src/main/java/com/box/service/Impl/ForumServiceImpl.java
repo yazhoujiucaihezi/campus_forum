@@ -6,7 +6,9 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.box.config.RabbitMQConfig;
 import com.box.dto.CommentDTO;
+import com.box.dto.NotificationMessage;
 import com.box.dto.TopicUpdateDTO;
 import com.box.entity.*;
 import com.box.exception.BusinessException;
@@ -18,6 +20,7 @@ import com.box.vo.TopicInteractVO;
 import com.box.vo.TopicUserVO;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +40,7 @@ public class ForumServiceImpl extends ServiceImpl<ForumMapper, Forum> implements
     private final UserMapper userMapper;
     private final TopicCommentMapper topicCommentMapper;
     private final UserDetailMapper userDetailMapper;
+    private final RabbitTemplate rabbitTemplate;
 
     /**
      * 获取帖子类型
@@ -117,21 +121,45 @@ public class ForumServiceImpl extends ServiceImpl<ForumMapper, Forum> implements
      */
     @Override
     public void interact(Integer uid, Integer tid, String type, Boolean state) {
+        // 先查操作者用户名，两种通知都要用
+        String username = userMapper.selectById(uid).getUsername();
+
         if ("like".equals(type)) {
             if (state) {
                 topicMapper.addLike(tid, uid);
+
+                Topic topic = topicMapper.selectById(tid);
+                if (topic != null && !topic.getUid().equals(uid)) {
+                    NotificationMessage message = new NotificationMessage();
+                    message.setUid(topic.getUid());
+                    message.setTitle("收到新点赞");
+                    message.setContent(username + " 点赞了你的帖子《" + topic.getTitle() + "》");
+                    message.setType("like");
+                    message.setUrl("/index/topic-detail/" + topic.getId());
+                    rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_QUEUE, message);
+                }
             } else {
                 topicMapper.removeLike(tid, uid);
             }
         } else if ("collect".equals(type)) {
             if (state) {
                 topicMapper.addCollect(tid, uid);
+
+                Topic topic = topicMapper.selectById(tid);
+                if (topic != null && !topic.getUid().equals(uid)) {
+                    NotificationMessage message = new NotificationMessage();
+                    message.setUid(topic.getUid());
+                    message.setTitle("收到新收藏");
+                    message.setContent(username + " 收藏了你的帖子《" + topic.getTitle() + "》");
+                    message.setType("collect");
+                    message.setUrl("/index/topic-detail/" + topic.getId());
+                    rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_QUEUE, message);
+                }
             } else {
                 topicMapper.removeCollect(tid, uid);
             }
         }
     }
-
     /**
      * 获取帖子评论信息
      */
@@ -188,8 +216,31 @@ public class ForumServiceImpl extends ServiceImpl<ForumMapper, Forum> implements
         BeanUtils.copyProperties(commentDTO, topicComment);
         topicComment.setTime(LocalDateTime.now());
         topicComment.setUid(uid);
-
         topicCommentMapper.insert(topicComment);
+        Topic topic = topicMapper.selectById(commentDTO.getTid());
+        if (topic != null && !topic.getUid().equals(uid)) {
+            NotificationMessage message = new NotificationMessage();
+            message.setUid(topic.getUid());
+            message.setTitle("您的帖子《" + topic.getTitle() + "》有新评论");
+            message.setContent(
+                            userMapper.selectById(uid).getUsername()
+                            + ":" +parseQuillText(topicComment.getContent()));
+            message.setType("comment");
+            message.setUrl("/index/topic-detail/" + topic.getId());
+            rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_QUEUE, message);
+        }
+        Integer replyId = topicCommentMapper.selectById(topicComment.getQuote()).getUid();
+        if (topicComment.getQuote()>0 &&!topicComment.getUid().equals(replyId)){
+            NotificationMessage message = new NotificationMessage();
+            message.setUid(replyId);
+            message.setTitle("您的评论《" + parseQuillText(topicCommentMapper.selectById(topicComment.getQuote()).getContent()) + "》有新回复");
+            message.setContent(
+                    userMapper.selectById(uid).getUsername()
+                            + ":" +parseQuillText(topicComment.getContent()));
+            message.setType("reply");
+            message.setUrl("/index/topic-detail/" + replyId);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.NOTIFICATION_QUEUE, message);
+        }
     }
 
     /**
