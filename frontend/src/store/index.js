@@ -10,7 +10,7 @@ export const useStore=defineStore('general',{
                 email:'',
                 role:'',
                 avatar:null,
-                registerTime:null
+                createTime:null
             },
             forum: {
                 types: []

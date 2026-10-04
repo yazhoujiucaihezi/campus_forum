@@ -20,25 +20,9 @@ import router from "@/router";
 import {useRoute} from "vue-router";
 
 const adminMenu = [
-  {
-    title: '校园论坛管理', icon: Location, sub: [
-      { title: '用户管理', icon: User, index: '/admin/user'},
-      { title: '邮件管理', icon: Message, index: '/admin/email' },
-      { title: '帖子广场管理', icon: ChatDotSquare, index:'/admin/forum'},
-      { title: '失物招领管理', icon: Bell },
-      { title: '校园活动管理', icon: Notification },
-      { title: '表白墙管理', icon: Umbrella },
-      { title: '合作机构管理', icon: WindPower }
-    ]
-  }, {
-    title: '探索与发现管理', icon: Position, sub: [
-      { title: '成绩管理', icon: Document },
-      { title: '课程表管理', icon: Files },
-      { title: '教务通知管理', icon: Monitor },
-      { title: '在线图书馆管理', icon: Collection },
-      { title: '预约教室管理', icon: DataLine }
-    ]
-  }
+  { title: '用户管理', icon: User, index: '/admin/user' },
+  { title: '邮件管理', icon: Message, index: '/admin/email' },
+  { title: '帖子广场管理', icon: ChatDotSquare, index: '/admin/forum' }
 ]
 
 const route = useRoute()
@@ -74,9 +58,7 @@ function addAdminTab(menu) {
 }
 
 onMounted(() => {
-  const initPage = adminMenu
-      .flatMap(menu => menu.sub)
-      .find(sub => sub.index === route.fullPath)
+  const initPage = adminMenu.find(menu => menu.index === route.fullPath)
   if(initPage) {
     addAdminTab(initPage)
   }
@@ -92,30 +74,17 @@ onMounted(() => {
         </div>
         <el-scrollbar style="height: calc(100vh - 57px)">
           <el-menu
-              router
-              :default-active="$route.path"
-              :default-openeds="['1','2']"
-              style="min-height: calc(100vh - 57px);border: none">
-            <el-sub-menu :index="(index+1).toString()"
-                         v-for="(menu,index) in adminMenu">
-              <template #title>
-                <el-icon>
-                  <component :is="menu.ic"/>
-                </el-icon>
-                <span><b>{{menu.title}}</b></span>
-              </template>
-              <el-menu-item :index="subMenu.index"
-                            @click="addAdminTab(subMenu)"
-                            v-for="subMenu in menu.sub">
-                <template #title>
-                  <el-icon>
-                    <component :is="subMenu.icon"/>
-                  </el-icon>
-                  {{subMenu.title}}
-                </template>
-              </el-menu-item>
-            </el-sub-menu>
-          </el-menu>
+    router
+    :default-active="$route.path"
+    style="min-height: calc(100vh - 57px);border: none">
+  <el-menu-item :index="menu.index" @click="addAdminTab(menu)"
+                v-for="menu in adminMenu" :key="menu.index">
+    <el-icon>
+      <component :is="menu.icon"/>
+    </el-icon>
+    <span>{{ menu.title }}</span>
+  </el-menu-item>
+</el-menu>
         </el-scrollbar>
       </el-aside>
       <el-container>

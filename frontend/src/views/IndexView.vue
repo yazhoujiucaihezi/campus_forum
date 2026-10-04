@@ -20,29 +20,10 @@ import router from "@/router";
 const store = useStore()
 
 const userMenu = [
-  {
-    title: '校园论坛', icon: Location, sub: [
-      { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
-      { title: '失物招领', icon: Bell },
-      { title: '校园活动', icon: Notification },
-      { title: '表白墙', icon: Umbrella },
-      { title: '通达驾校', icon: WindPower }
-    ]
-  }, {
-    title: '探索与发现', icon: Position, sub: [
-      { title: '成绩查询', icon: Document },
-      { title: '班级课程表', icon: Files },
-      { title: '教务通知', icon: Monitor },
-      { title: '在线图书馆', icon: Collection },
-      { title: '预约教室', icon: DataLine }
-    ]
-  }, {
-    title: '个人设置', icon: Operation, sub: [
-      { title: '个人信息设置', icon: User, index: '/index/user-setting' },
-      { title: '论坛帖子管理', icon: CoffeeCup, index: '/index/forum-setting' },
-      { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
-    ]
-  }
+  { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
+  { title: '个人信息设置', icon: User, index: '/index/user-setting' },
+  { title: '论坛帖子管理', icon: CoffeeCup, index: '/index/forum-setting' },
+  { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
 ]
 
 const loading =inject("userLoading")
@@ -170,28 +151,16 @@ apiForumTypes(data => {
         <el-aside width="230px">
           <el-scrollbar style="height: calc(100vh - 55px)">
             <el-menu
-                router
-                :default-active="$route.path"
-                :default-openeds="['1','2','3']"
-                style="min-height: calc(100vh - 55px)">
-              <el-sub-menu :index="(index+1).toString()"
-                           v-for="(menu, index) in userMenu">
-                <template #title>
-                  <el-icon>
-                    <component :is="menu.icon"/>
-                  </el-icon>
-                  <span><b>{{menu.title}}</b></span>
-                </template>
-                <el-menu-item :index="submenu.index" v-for="submenu in menu.sub">
-                  <template #title>
-                    <el-icon>
-                      <component :is="submenu.icon"/>
-                    </el-icon>
-                    {{submenu.title}}
-                  </template>
-                </el-menu-item>
-              </el-sub-menu>
-            </el-menu>
+    router
+    :default-active="$route.path"
+    style="min-height: calc(100vh - 55px)">
+  <el-menu-item :index="menu.index" v-for="menu in userMenu" :key="menu.index">
+    <el-icon>
+      <component :is="menu.icon"/>
+    </el-icon>
+    <span>{{ menu.title }}</span>
+  </el-menu-item>
+</el-menu>
           </el-scrollbar>
         </el-aside>
         <el-main class="main-content-page">

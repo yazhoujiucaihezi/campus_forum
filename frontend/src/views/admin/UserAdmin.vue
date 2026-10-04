@@ -89,7 +89,7 @@ watchEffect(() => apiUserList(userTable.page, userTable.size,keyword.value,data 
           <el-table-column prop="email" label="电子邮件" width="200" show-overflow-tooltip/>
           <el-table-column label="注册时间" width="200">
           <template #default="{ row }">
-              {{ new Date(row.registerTime).toLocaleString() }}
+              {{ new Date(row.CreateTime).toLocaleString() }}
           </template>
           </el-table-column>
           <el-table-column label="状态"  align="center">
