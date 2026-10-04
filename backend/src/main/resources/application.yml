@@ -1,36 +1,36 @@
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/forum?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
+    username: 你的MySQL账号
+    password: 你的MySQL密码
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   rabbitmq:
-    host: 192.168.181.128
+    host: localhost
     port: 5672
-    username: box
-    password: 123
+    username: 你的RabbitMQ用户名
+    password: 你的RabbitMQ密码
 
   ai:
     openai:
-      api-key: sk-refcxdamdezypyzeyxtqjjkpltdaltacrbsivtcecxamfxvb
+      api-key: 你的AI接口密钥
       base-url: https://api.siliconflow.cn
       chat:
         options:
-          # 首选方案
           model: Qwen/Qwen3-8B
 
   mail:
     host: smtp.qq.com
     port: 587
-    username: 2464859727@qq.com
-    password: oujvjsnnpkamdiie
+    username: 你的QQ邮箱
+    password: 你的邮箱授权码
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
   servlet:
     multipart:
       max-file-size: 5MB
@@ -38,14 +38,15 @@ spring:
 
 app:
   upload:
-    dir: D:/forum/backend/uploads/
+    dir: 你的图片上传目录
 
 qweather:
-  host: https://nk6mthkn5k.re.qweatherapi.com
-  kid: KEB55MARN2
-  sub: 2AE3U8NW7V
-  iss: Q1722007A5
-  private-key-path: D:/forum/backend/ed25519-private.pem
+  host: 你的和风天气APIHost
+  kid: 你的凭据ID
+  sub: 你的项目ID
+  iss: 你的开发者ID
+  private-key-path: 你的私钥文件路径
+
 mybatis-plus:
   global-config:
     db-config:
